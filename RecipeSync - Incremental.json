@@ -1,0 +1,1105 @@
+{
+  "name": "RecipeSync - Incremental",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## CREATE NEW CONTENT",
+        "height": 240,
+        "width": 660,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "9ba8a77b-9e04-47ae-883a-1f111ae94dc4",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## CHECK & INSERT MARKERS",
+        "height": 496,
+        "width": 448,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "8617f70e-31ac-4570-be31-51b9d91d264c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -464,
+        144
+      ],
+      "id": "7abc0b4a-a0d4-48ec-a672-423c65aeab8f",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const lastSync = $input.first().json.property_last_sync\n\nreturn [{\n  json: {\n    lastSync: lastSync || '1970-01-01T00:00:00.000Z'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        144
+      ],
+      "id": "d3c58ecb-9cb7-422b-bd03-465a3ff84ce2",
+      "name": "Read last sync timestamp"
+    },
+    {
+      "parameters": {
+        "content": "## PROCESS EACH RECIPE",
+        "height": 864,
+        "width": 2852,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -544,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "9490a4d9-71d1-4595-8a30-a20ec1f75ab2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## CREATE OLD CONTENT",
+        "height": 240,
+        "width": 656
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        432,
+        320
+      ],
+      "typeVersion": 1,
+      "id": "e000952d-e1e7-4e85-8525-b626dc4fa4e0",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## PREPARING AND GATHERING INFO",
+        "height": 240,
+        "width": 864
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1440,
+        80
+      ],
+      "typeVersion": 1,
+      "id": "f03d0548-0658-41d3-a0c7-db8c721cb7d0",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "12bf22b1-4b54-4083-9344-27cf2a644c56",
+              "leftValue": "={{ new Date($json.last_edited_time).getTime() }}",
+              "rightValue": "={{ new Date($('Read last sync timestamp').item.json.lastSync).getTime() - 60000 }}",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        160
+      ],
+      "id": "8e18fda6-51df-477c-9e70-9bcc4f2317d0",
+      "name": "Updated since lastSync",
+      "notesInFlow": true,
+      "notes": "No Item in loop"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "1GUBlhXS765DvjwF-lkXpTDjpMYX0Iqccx3uILxsAqss"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        496,
+        384
+      ],
+      "id": "330890f3-3018-4e87-a111-92523aa5f707",
+      "name": "Get document with markers",
+      "retryOnFail": true,
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "71YJB2fIKGSoW987",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## CLEANUP DELETED RECIPES",
+        "height": 240,
+        "width": 2288,
+        "color": "#472600"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -48,
+        -208
+      ],
+      "typeVersion": 1,
+      "id": "d4b37146-dafe-4903-b587-818a56eec083",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## UPDATE DOCUMENT",
+        "height": 496,
+        "width": 1120,
+        "color": "#373800"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1120,
+        64
+      ],
+      "typeVersion": 1,
+      "id": "d82e8691-00b5-423c-ba91-b9c69708d4c2",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "jsCode": "const docIds = $input.all()\n  .map(i => i.json.pageId)\n  .filter(id => id && id !== '--'); // crapfilter\n\nconst notionIds = $('Fetch all recipes').all().map(i => i.json.id);\n\nconst notionSet = new Set(notionIds);\n\nconst deleted = docIds.filter(id => !notionSet.has(id));\n\nreturn deleted.map(id => ({\n  json: {\n    pageId: id,\n    documentId: $input.first().json.documentId,\n  },\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -144
+      ],
+      "id": "0cc026a1-e7ed-41f4-9999-7e2e302ab4a5",
+      "name": "Detect deleted recipes",
+      "retryOnFail": false
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    runStartedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1392,
+        144
+      ],
+      "id": "fcb2ad6c-68c1-4ed4-b5d0-22149263f894",
+      "name": "Initialize sync timestamp"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "get",
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/RecipeSync-346155e3364a80b6bb1fdb9cf702a7e6?v=346155e3364a80ccba2c000c361fc171&source=copy_link",
+          "mode": "url"
+        }
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -1168,
+        144
+      ],
+      "id": "34ec5982-1df2-4925-bea9-7715ef0b8960",
+      "name": "Fetch last sync state",
+      "credentials": {
+        "notionApi": {
+          "id": "wyrl9Poi0UELMINU",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "32a155e3-364a-8002-becf-f203615aa6c1",
+          "mode": "list",
+          "cachedResultName": "Rezepte",
+          "cachedResultUrl": "https://app.notion.com/p/32a155e3364a8002becff203615aa6c1"
+        },
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -720,
+        144
+      ],
+      "id": "e1cc41fd-0ff9-442d-ad07-07679743e7fe",
+      "name": "Fetch all recipes",
+      "credentials": {
+        "notionApi": {
+          "id": "wyrl9Poi0UELMINU",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const doc = $input.first().json.content ?? '';\nconst documentId = $input.first().json.documentId;\n\nconst regex = /RECIPE_START:\\s*([a-z0-9-]+)/gi;\n\nconst ids = [];\nlet match;\n\nwhile ((match = regex.exec(doc)) !== null) {\n  ids.push(match[1]);\n}\n\nreturn ids.map(pageId => ({\n  json: {\n    pageId,\n    documentId,\n  },\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -144
+      ],
+      "id": "bad5e120-f501-45db-92d1-e1ace6883ec1",
+      "name": "Extract recipe IDs",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "1GUBlhXS765DvjwF-lkXpTDjpMYX0Iqccx3uILxsAqss",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "={{ $json.oldContent }}",
+              "replaceText": "={{ $json.newContent }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        912,
+        -144
+      ],
+      "id": "8f48d2ef-cffa-4423-8d69-4f2257b9f238",
+      "name": "Delete recipe sections",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "71YJB2fIKGSoW987",
+          "name": "Google Docs account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.documentId }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ '\\n\\n<!-- RECIPE_START: ' + $('Loop Over Items').item.json.id + ' -->\\n<!-- RECIPE_END: ' + $('Loop Over Items').item.json.id + ' -->' }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        16,
+        352
+      ],
+      "id": "9031b377-503f-4fa9-9db9-6d62fb3f3b0e",
+      "name": "Insert missing markers",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "71YJB2fIKGSoW987",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst grouped = new Map();\n\nfor (const item of items) {\n  const block = item.json;\n\n  const pageId =\n    block.parent?.page_id ??\n    block.root_id;\n\n  if (!pageId) continue;\n\n  if (!grouped.has(pageId)) {\n    grouped.set(pageId, {\n      pageId,\n      blocks: [],\n    });\n  }\n\n  grouped.get(pageId).blocks.push(block);\n}\n\nreturn Array.from(grouped.values()).map(group => ({\n  json: group,\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        128
+      ],
+      "id": "0e7779ee-191c-431e-886e-34c2fbcf59b6",
+      "name": "Group blocks by recipe"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst pageId = $input.first().json.pageId;\n\nconst cleanId = id => String(id || '').replace(/-/g, '');\n\nconst recipe = $('Fetch all recipes').all()\n  .map(i => i.json)\n  .find(p => cleanId(p.id) === cleanId(pageId));\n\nif (!recipe) {\n  throw new Error(`Recipe meta not found for pageId ${pageId}`);\n}\n\nconst title =\n  recipe.properties?.Name?.title?.[0]?.plain_text ||\n  recipe.property_name ||\n  recipe.name ||\n  'Ohne Titel';\n\nconst rating =\n  recipe.property_rating_calc ||\n  recipe.property_rating ||\n  '';\n\nconst tags = [\n  ...(recipe.property_tags || []),\n  recipe.property_meal_type || '',\n].filter(Boolean);\n\nconst description =\n  recipe.property_description ||\n  '';\n\nfunction blockToText(block) {\n  const type = block.type;\n  const text = String(block.content || '').trim();\n\n  if (!text) return '';\n\n  if (type === 'heading_1') return `# ${text}`;\n  if (type === 'heading_2') return `## ${text}`;\n  if (type === 'heading_3') return `### ${text}`;\n  if (type === 'bulleted_list_item') return `- ${text}`;\n  if (type === 'numbered_list_item') return `1. ${text}`;\n  if (type === 'to_do') return `[ ] ${text}`;\n\n  if (['paragraph', 'quote', 'callout', 'toggle'].includes(type)) {\n    return text;\n  }\n\n  return '';\n}\n\nconst blocks = items.flatMap(item => item.json.blocks ?? [item.json]);\n\nconst content = blocks\n  .map(blockToText)\n  .filter(Boolean)\n  .join('\\n');\n\nconst body = [\n  `Title: ${title}`,\n  rating ? `Rating: ${rating}` : '',\n  tags.length ? `Tags: ${[...new Set(tags)].join(', ')}` : '',\n  description ? `Description: ${description}` : '',\n  '',\n  `Content:`,\n  content,\n]\n  .filter(line => line !== '')\n  .join('\\n');\n\nconst newContent = `RECIPE_START: ${pageId}\n${body}\nRECIPE_END: ${pageId}`;\n\nreturn [\n  {\n    json: {\n      pageId,\n      newContent,\n      blockCount: blocks.length,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        128
+      ],
+      "id": "c0ddbc2c-671c-4f63-b976-742cb202ff62",
+      "name": "Build new recipe content"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const oldDoc = $json.content;\nconst pageId = $json.pageId;\n\nconst startMarker = `RECIPE_START: ${pageId}`;\nconst endMarker = `RECIPE_END: ${pageId}`;\n\nconst startIndex = oldDoc.indexOf(startMarker);\n\nif (startIndex === -1) {\n  throw new Error(`Start marker not found for pageId ${pageId}`);\n}\n\nconst endIndex = oldDoc.indexOf(endMarker, startIndex);\n\nif (endIndex === -1) {\n  throw new Error(`End marker not found for pageId ${pageId}`);\n}\n\nconst endMarkerEnd = endIndex + endMarker.length;\n\n// 🔥 kompletter Block (unverändert!)\nconst oldContent = oldDoc.slice(startIndex, endMarkerEnd);\n\nreturn {\n  pageId,\n  oldContent,\n  startIndex,\n  endIndex: endMarkerEnd,\n  documentId: $json.documentId,\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        384
+      ],
+      "id": "32a6d3fb-cd4a-40bc-b961-9bfe17666a3b",
+      "name": "Build old recipe content",
+      "retryOnFail": true,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalizeNew(value) {\n  return String(value ?? '')\n    .replace(/\\r\\n/g, '\\n')\n    .replace(/\\u00A0/g, ' ')\n    .trim();\n}\n\nconst item = $input.first().json;\n\nreturn {\n  pageId: item.pageId,\n  oldContent: item.oldContent, // NICHT anfassen\n  newContent: normalizeNew(item.newContent),\n  documentId: item.documentId,\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        256
+      ],
+      "id": "51297f03-4914-472e-a9b0-d477ade6b15b",
+      "name": "Normalize replacement content"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Get document for markers').item.json.documentId }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "={{ $json.oldContent }}",
+              "replaceText": "={{ $json.newContent }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        256
+      ],
+      "id": "cf8539e0-579e-4cb5-b786-6677ad6c3f84",
+      "name": "Update the document",
+      "retryOnFail": true,
+      "notesInFlow": false,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "71YJB2fIKGSoW987",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "=https://www.notion.so/RecipeSync-346155e3364a80b6bb1fdb9cf702a7e6?v=346155e3364a80ccba2c000c361fc171&source=copy_link",
+          "__regex": "(?:https|http)://www\\.notion\\.so/(?:[a-z0-9-]{2,}/)?(?:[a-zA-Z0-9-]{1,}-)?([0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12})"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "lastSync|rich_text",
+              "textContent": "={{ $('Initialize sync timestamp').item.json.runStartedAt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        2064,
+        80
+      ],
+      "id": "64ec31b1-6b10-4ac7-94a5-e93e3e4ce656",
+      "name": "Upload last sync timestamp",
+      "credentials": {
+        "notionApi": {
+          "id": "wyrl9Poi0UELMINU",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1648,
+        144
+      ],
+      "id": "f3856fbc-4780-4be3-9662-fa205e8149fb",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const errors = $input.all().filter(i => i.json.error);\n\nif (errors.length > 0) {\n  throw new Error(`${errors.length} deletions failed`);\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -144
+      ],
+      "id": "5dfaf1c8-5418-4401-b17f-c426e9c2e44c",
+      "name": "Handle deletion errors"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "1GUBlhXS765DvjwF-lkXpTDjpMYX0Iqccx3uILxsAqss"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        16,
+        144
+      ],
+      "id": "fbcb5189-95db-4943-8ab6-c7ab708fa85d",
+      "name": "Get document for markers",
+      "retryOnFail": true,
+      "alwaysOutputData": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "71YJB2fIKGSoW987",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "1GUBlhXS765DvjwF-lkXpTDjpMYX0Iqccx3uILxsAqss"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        16,
+        -144
+      ],
+      "id": "db80d64c-d643-456c-b02c-d0012915f298",
+      "name": "Get document for cleanup",
+      "retryOnFail": true,
+      "alwaysOutputData": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "71YJB2fIKGSoW987",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const doc = $('Get document for cleanup').first().json.content ?? '';\nconst documentId = $('Get document for cleanup').first().json.documentId;\n\nconst output = [];\n\nfor (const item of $input.all()) {\n  const pageId = item.json.pageId;\n\n  const startMarker = `<!-- RECIPE_START: ${pageId}`;\n  const endMarker = `RECIPE_END: ${pageId} -->`;\n\n  const startIndex = doc.indexOf(startMarker);\n  if (startIndex === -1) continue;\n\n  const endIndex = doc.indexOf(endMarker, startIndex);\n  if (endIndex === -1) continue;\n\n  const oldContent = doc.slice(startIndex, endIndex + endMarker.length);\n\n  output.push({\n    json: {\n      pageId,\n      documentId,\n      oldContent,\n      newContent: '',\n    },\n  });\n}\n\nreturn output;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -144
+      ],
+      "id": "276e878b-7bdc-4699-b615-cbfbccef7f47",
+      "name": "Find recipe sections",
+      "retryOnFail": false,
+      "waitBetweenTries": 2000,
+      "notes": "Finds recipe sections in doc by markers.\nSkips if marker not found (expected case)."
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1136,
+        -144
+      ],
+      "id": "1232c151-640b-4867-8dd1-61d4255843ec",
+      "name": "Merge deletion results"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5c572bc3-1fb7-46d5-98e2-cc95693dff8e",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "={{ `<!-- RECIPE_START: ${$('Loop Over Items').item.json.id}` }}",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        240,
+        144
+      ],
+      "id": "05e58bd7-5644-4f71-9f00-e0da3f73c95e",
+      "name": "Check markers"
+    },
+    {
+      "parameters": {
+        "resource": "block",
+        "operation": "getAll",
+        "blockId": {
+          "__rl": true,
+          "value": "={{ $('Loop Over Items').item.json.id }}",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "fetchNestedBlocks": true
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        496,
+        128
+      ],
+      "id": "c620018e-a523-457c-906f-ed44d708e23a",
+      "name": "Get changed recipe blocks",
+      "credentials": {
+        "notionApi": {
+          "id": "wyrl9Poi0UELMINU",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b900dada-8ed3-436a-be01-21a0d84ee963",
+              "name": "pageId",
+              "value": "={{ $('Loop Over Items').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "126d221d-1b57-4401-b8a4-99c4e5f2b843",
+              "name": "content",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        384
+      ],
+      "id": "8cc61477-00ee-4c9a-bf05-17b76f20906f",
+      "name": "Prepare variables"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "pageId",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1168,
+        256
+      ],
+      "id": "63161ef2-9428-4c77-ba6d-3c211fc0a9e2",
+      "name": "Merge content",
+      "retryOnFail": true,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b3c4cb05-8b92-41e7-aec3-fcd0c9ec09fd",
+              "leftValue": "={{ $json.occurrencesChanged }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1840,
+        256
+      ],
+      "id": "d75b483d-4ff5-4dd5-9d6d-dda65742bd88",
+      "name": "Verify replacement"
+    },
+    {
+      "parameters": {
+        "errorMessage": "=Replace failed: Content mismatch for pageId {{$json.pageId}}"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        272
+      ],
+      "id": "de3d6964-118e-4805-910e-e3a4d7528a07",
+      "name": "Stop on replacement error"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Get document for cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Updated since lastSync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read last sync timestamp": {
+      "main": [
+        [
+          {
+            "node": "Fetch all recipes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Updated since lastSync": {
+      "main": [
+        [
+          {
+            "node": "Get document for markers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get document with markers": {
+      "main": [
+        [
+          {
+            "node": "Prepare variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect deleted recipes": {
+      "main": [
+        [
+          {
+            "node": "Find recipe sections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize sync timestamp": {
+      "main": [
+        [
+          {
+            "node": "Fetch last sync state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch last sync state": {
+      "main": [
+        [
+          {
+            "node": "Read last sync timestamp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch all recipes": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract recipe IDs": {
+      "main": [
+        [
+          {
+            "node": "Detect deleted recipes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete recipe sections": {
+      "main": [
+        [
+          {
+            "node": "Merge deletion results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge deletion results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Insert missing markers": {
+      "main": [
+        [
+          {
+            "node": "Get changed recipe blocks",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get document with markers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Group blocks by recipe": {
+      "main": [
+        [
+          {
+            "node": "Build new recipe content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build new recipe content": {
+      "main": [
+        [
+          {
+            "node": "Merge content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build old recipe content": {
+      "main": [
+        [
+          {
+            "node": "Merge content",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Normalize replacement content": {
+      "main": [
+        [
+          {
+            "node": "Update the document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update the document": {
+      "main": [
+        [
+          {
+            "node": "Verify replacement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload last sync timestamp": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Initialize sync timestamp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle deletion errors": {
+      "main": [
+        []
+      ]
+    },
+    "Get document for markers": {
+      "main": [
+        [
+          {
+            "node": "Check markers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get document for cleanup": {
+      "main": [
+        [
+          {
+            "node": "Extract recipe IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find recipe sections": {
+      "main": [
+        [
+          {
+            "node": "Delete recipe sections",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Merge deletion results": {
+      "main": [
+        [
+          {
+            "node": "Handle deletion errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check markers": {
+      "main": [
+        [
+          {
+            "node": "Get changed recipe blocks",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get document with markers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert missing markers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get changed recipe blocks": {
+      "main": [
+        [
+          {
+            "node": "Group blocks by recipe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare variables": {
+      "main": [
+        [
+          {
+            "node": "Build old recipe content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge content": {
+      "main": [
+        [
+          {
+            "node": "Normalize replacement content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify replacement": {
+      "main": [
+        [
+          {
+            "node": "Upload last sync timestamp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop on replacement error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "e1f02148-4d53-447b-b23f-0ce670a280b4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "970f229751ebbab98d12cab3b179f3d634f3803781935e634aa873d7a6da0699"
+  },
+  "id": "UxPpHemgIu8vdcjG",
+  "tags": []
+}

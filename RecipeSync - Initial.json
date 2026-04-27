@@ -1,0 +1,221 @@
+{
+  "name": "RecipeSync - Initial",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const pageItems = $('Get recipes').all();\nconst blockItems = $input.all();\n\n// ---------- page meta map ----------\nconst pageMetaById = {};\n\nfor (const item of pageItems) {\n  const page = item.json;\n  const pageId = page.id;\n  if (!pageId) continue;\n\n  const tags = [\n    ...(page.property_tags || []),\n    page.property_meal_type || \"\",\n  ].filter(Boolean);\n\n  pageMetaById[pageId] = {\n    title: page.property_name || page.name || \"Ohne Titel\",\n    rating: page.property_rating_calc || \"\",\n    tags: [...new Set(tags)],\n    description: page.property_description || \"\",\n  };\n}\n\n// ---------- group blocks by page_id ----------\nconst blocksByPageId = {};\n\nfor (const item of blockItems) {\n  const block = item.json;\n  const pageId = block.parent?.page_id;\n\n  if (!pageId) continue;\n\n  const type = block.type;\n  const raw = (block.content || \"\").trim();\n\n  if (!raw) continue;\n\n  let text;\n\n  if (type === \"heading_1\") {\n    text = `# ${raw}`;\n  } else if (type === \"heading_2\") {\n    text = `## ${raw}`;\n  } else if (type === \"heading_3\") {\n    text = `### ${raw}`;\n  } else if (type === \"bulleted_list_item\") {\n    text = `- ${raw}`;\n  } else if (type === \"numbered_list_item\") {\n    text = `1. ${raw}`;\n  } else if (type === \"to_do\") {\n    text = `[ ] ${raw}`;\n  } else if ([\"paragraph\", \"quote\", \"callout\", \"toggle\"].includes(type)) {\n    text = raw;\n  } else {\n    continue;\n  }\n\n  if (!blocksByPageId[pageId]) {\n    blocksByPageId[pageId] = [];\n  }\n\n  blocksByPageId[pageId].push(text);\n}\n\n// ---------- build final document ----------\nconst sections = [];\n\nfor (const pageId of Object.keys(pageMetaById)) {\n  const meta = pageMetaById[pageId];\n  const contentLines = blocksByPageId[pageId] || [];\n  const content = contentLines.join(\"\\n\");\n\n  const section = [\n    `<!-- RECIPE_START: ${pageId} -->`,\n    ``,\n    `Title: ${meta.title}`,\n    `Rating: ${meta.rating}`,\n    `Tags: ${meta.tags.join(\", \")}`,\n    meta.description ? `Description: ${meta.description}` : \"\",\n    ``,\n    `Content:`,\n    content,\n    ``,\n    `<!-- RECIPE_END: ${pageId} -->`,\n  ]\n    .filter(line => line !== \"\")\n    .join(\"\\n\");\n\n  sections.push(section);\n}\n\n// ---------- full doc ----------\nconst finalDoc = [\n  `# Rezepte`,\n  ``,\n  sections.join(\"\\n\\n\"),\n].join(\"\\n\");\n\nreturn [\n  {\n    json: {\n      content: finalDoc,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        240
+      ],
+      "id": "6782a736-1649-4972-9940-d8000d8a17e2",
+      "name": "Create content (all recipes)"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 22
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        240
+      ],
+      "id": "a01f3f96-2e92-49e9-9952-10dc442bf7c2",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "1GUBlhXS765DvjwF-lkXpTDjpMYX0Iqccx3uILxsAqss"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        224,
+        240
+      ],
+      "id": "4d51b5ad-f290-4639-8181-7b27d977dcdc",
+      "name": "Get document",
+      "retryOnFail": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "71YJB2fIKGSoW987",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "32a155e3-364a-8002-becf-f203615aa6c1",
+          "mode": "list",
+          "cachedResultName": "Rezepte",
+          "cachedResultUrl": "https://www.notion.so/32a155e3364a8002becff203615aa6c1"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        240
+      ],
+      "id": "c5a04552-5fa4-40e5-aa7a-d73950311d3c",
+      "name": "Get recipes",
+      "retryOnFail": false,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "notionApi": {
+          "id": "wyrl9Poi0UELMINU",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "block",
+        "operation": "getAll",
+        "blockId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "returnAll": true,
+        "fetchNestedBlocks": true
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        240
+      ],
+      "id": "6aacd858-50a2-4f28-a3b7-68911a3a89dd",
+      "name": "Get recipe blocks",
+      "credentials": {
+        "notionApi": {
+          "id": "wyrl9Poi0UELMINU",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Get document').item.json.documentId }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "={{ $('Get document').item.json.content }}",
+              "replaceText": "={{ $json.content }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        240
+      ],
+      "id": "dbb2a7c1-0ca7-4029-bded-4a7626879b33",
+      "name": "Update document",
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "71YJB2fIKGSoW987",
+          "name": "Google Docs account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Create content (all recipes)": {
+      "main": [
+        [
+          {
+            "node": "Update document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get document": {
+      "main": [
+        [
+          {
+            "node": "Get recipes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get recipes": {
+      "main": [
+        [
+          {
+            "node": "Get recipe blocks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get recipe blocks": {
+      "main": [
+        [
+          {
+            "node": "Create content (all recipes)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "995f1abb-9cf3-499a-a1ad-7b433633ab28",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "970f229751ebbab98d12cab3b179f3d634f3803781935e634aa873d7a6da0699"
+  },
+  "id": "NmXdD9UDVlN3appT",
+  "tags": []
+}
