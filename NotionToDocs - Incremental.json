@@ -1,5 +1,5 @@
 {
-  "name": "RecipeSync - Incremental",
+  "name": "NotionToDocs - Incremental",
   "nodes": [
     {
       "parameters": {
@@ -32,19 +32,6 @@
       "typeVersion": 1,
       "id": "8617f70e-31ac-4570-be31-51b9d91d264c",
       "name": "Sticky Note1"
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -464,
-        144
-      ],
-      "id": "7abc0b4a-a0d4-48ec-a672-423c65aeab8f",
-      "name": "Loop Over Items"
     },
     {
       "parameters": {
@@ -200,7 +187,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const docIds = $input.all()\n  .map(i => i.json.pageId)\n  .filter(id => id && id !== '--'); // crapfilter\n\nconst notionIds = $('Fetch all recipes').all().map(i => i.json.id);\n\nconst notionSet = new Set(notionIds);\n\nconst deleted = docIds.filter(id => !notionSet.has(id));\n\nreturn deleted.map(id => ({\n  json: {\n    pageId: id,\n    documentId: $input.first().json.documentId,\n  },\n}));"
+        "jsCode": "const docIds = $input.all()\n  .map(i => i.json.pageId)\n  .filter(id => id && id !== '--'); // crapfilter\n\nconst notionIds = $('Fetch recipes').all().map(i => i.json.id);\n\nconst notionSet = new Set(notionIds);\n\nconst deleted = docIds.filter(id => !notionSet.has(id));\n\nreturn deleted.map(id => ({\n  json: {\n    pageId: id,\n    documentId: $input.first().json.documentId,\n  },\n}));"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -243,35 +230,6 @@
       ],
       "id": "34ec5982-1df2-4925-bea9-7715ef0b8960",
       "name": "Fetch last sync state",
-      "credentials": {
-        "notionApi": {
-          "id": "wyrl9Poi0UELMINU",
-          "name": "Notion account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "resource": "databasePage",
-        "operation": "getAll",
-        "databaseId": {
-          "__rl": true,
-          "value": "32a155e3-364a-8002-becf-f203615aa6c1",
-          "mode": "list",
-          "cachedResultName": "Rezepte",
-          "cachedResultUrl": "https://app.notion.com/p/32a155e3364a8002becff203615aa6c1"
-        },
-        "simple": false,
-        "options": {}
-      },
-      "type": "n8n-nodes-base.notion",
-      "typeVersion": 2.2,
-      "position": [
-        -720,
-        144
-      ],
-      "id": "e1cc41fd-0ff9-442d-ad07-07679743e7fe",
-      "name": "Fetch all recipes",
       "credentials": {
         "notionApi": {
           "id": "wyrl9Poi0UELMINU",
@@ -333,7 +291,7 @@
           "actionFields": [
             {
               "action": "insert",
-              "text": "={{ '\\n\\n<!-- RECIPE_START: ' + $('Loop Over Items').item.json.id + ' -->\\n<!-- RECIPE_END: ' + $('Loop Over Items').item.json.id + ' -->' }}"
+              "text": "={{ '\\n\\n<!-- RECIPE_START: ' + $('Loop Over Recipes').item.json.id + ' -->\\n<!-- RECIPE_END: ' + $('Loop Over Recipes').item.json.id + ' -->' }}"
             }
           ]
         }
@@ -370,7 +328,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst pageId = $input.first().json.pageId;\n\nconst cleanId = id => String(id || '').replace(/-/g, '');\n\nconst recipe = $('Fetch all recipes').all()\n  .map(i => i.json)\n  .find(p => cleanId(p.id) === cleanId(pageId));\n\nif (!recipe) {\n  throw new Error(`Recipe meta not found for pageId ${pageId}`);\n}\n\nconst title =\n  recipe.properties?.Name?.title?.[0]?.plain_text ||\n  recipe.property_name ||\n  recipe.name ||\n  'Ohne Titel';\n\nconst rating =\n  recipe.property_rating_calc ||\n  recipe.property_rating ||\n  '';\n\nconst tags = [\n  ...(recipe.property_tags || []),\n  recipe.property_meal_type || '',\n].filter(Boolean);\n\nconst description =\n  recipe.property_description ||\n  '';\n\nfunction blockToText(block) {\n  const type = block.type;\n  const text = String(block.content || '').trim();\n\n  if (!text) return '';\n\n  if (type === 'heading_1') return `# ${text}`;\n  if (type === 'heading_2') return `## ${text}`;\n  if (type === 'heading_3') return `### ${text}`;\n  if (type === 'bulleted_list_item') return `- ${text}`;\n  if (type === 'numbered_list_item') return `1. ${text}`;\n  if (type === 'to_do') return `[ ] ${text}`;\n\n  if (['paragraph', 'quote', 'callout', 'toggle'].includes(type)) {\n    return text;\n  }\n\n  return '';\n}\n\nconst blocks = items.flatMap(item => item.json.blocks ?? [item.json]);\n\nconst content = blocks\n  .map(blockToText)\n  .filter(Boolean)\n  .join('\\n');\n\nconst body = [\n  `Title: ${title}`,\n  rating ? `Rating: ${rating}` : '',\n  tags.length ? `Tags: ${[...new Set(tags)].join(', ')}` : '',\n  description ? `Description: ${description}` : '',\n  '',\n  `Content:`,\n  content,\n]\n  .filter(line => line !== '')\n  .join('\\n');\n\nconst newContent = `RECIPE_START: ${pageId}\n${body}\nRECIPE_END: ${pageId}`;\n\nreturn [\n  {\n    json: {\n      pageId,\n      newContent,\n      blockCount: blocks.length,\n    },\n  },\n];"
+        "jsCode": "const items = $input.all();\nconst pageId = $input.first().json.pageId;\n\nconst cleanId = id => String(id || '').replace(/-/g, '');\n\nconst recipe = $('Fetch recipes').all()\n  .map(i => i.json)\n  .find(p => cleanId(p.id) === cleanId(pageId));\n\nif (!recipe) {\n  throw new Error(`Recipe meta not found for pageId ${pageId}`);\n}\n\nconst title =\n  recipe.properties?.Name?.title?.[0]?.plain_text ||\n  recipe.property_name ||\n  recipe.name ||\n  'Ohne Titel';\n\nconst rating =\n  recipe.property_rating_calc ||\n  recipe.property_rating ||\n  '';\n\nconst tags = [\n  ...(recipe.property_tags || []),\n  recipe.property_meal_type || '',\n].filter(Boolean);\n\nconst description =\n  recipe.property_description ||\n  '';\n\nfunction blockToText(block) {\n  const type = block.type;\n  const text = String(block.content || '').trim();\n\n  if (!text) return '';\n\n  if (type === 'heading_1') return `# ${text}`;\n  if (type === 'heading_2') return `## ${text}`;\n  if (type === 'heading_3') return `### ${text}`;\n  if (type === 'bulleted_list_item') return `- ${text}`;\n  if (type === 'numbered_list_item') return `1. ${text}`;\n  if (type === 'to_do') return `[ ] ${text}`;\n\n  if (['paragraph', 'quote', 'callout', 'toggle'].includes(type)) {\n    return text;\n  }\n\n  return '';\n}\n\nconst blocks = items.flatMap(item => item.json.blocks ?? [item.json]);\n\nconst content = blocks\n  .map(blockToText)\n  .filter(Boolean)\n  .join('\\n');\n\nconst body = [\n  `Title: ${title}`,\n  rating ? `Rating: ${rating}` : '',\n  tags.length ? `Tags: ${[...new Set(tags)].join(', ')}` : '',\n  description ? `Description: ${description}` : '',\n  '',\n  `Content:`,\n  content,\n]\n  .filter(line => line !== '')\n  .join('\\n');\n\nconst newContent = `RECIPE_START: ${pageId}\n${body}\nRECIPE_END: ${pageId}`;\n\nreturn [\n  {\n    json: {\n      pageId,\n      newContent,\n      blockCount: blocks.length,\n    },\n  },\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -399,7 +357,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function normalizeNew(value) {\n  return String(value ?? '')\n    .replace(/\\r\\n/g, '\\n')\n    .replace(/\\u00A0/g, ' ')\n    .trim();\n}\n\nconst item = $input.first().json;\n\nreturn {\n  pageId: item.pageId,\n  oldContent: item.oldContent, // NICHT anfassen\n  newContent: normalizeNew(item.newContent),\n  documentId: item.documentId,\n};"
+        "jsCode": "function normalizeNew(value) {\n  return String(value ?? '')\n    .replace(/\\r\\n/g, '\\n')\n    .replace(/\\u00A0/g, ' ')\n    .trim();\n}\n\nconst item = $input.first().json;\n\nreturn {\n  pageId: item.pageId,\n  oldContent: item.oldContent,\n  newContent: normalizeNew(item.newContent),\n  documentId: item.documentId,\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -596,7 +554,7 @@
             {
               "id": "5c572bc3-1fb7-46d5-98e2-cc95693dff8e",
               "leftValue": "={{ $json.content }}",
-              "rightValue": "={{ `<!-- RECIPE_START: ${$('Loop Over Items').item.json.id}` }}",
+              "rightValue": "={{ `<!-- RECIPE_START: ${$('Loop Over Recipes').item.json.id}` }}",
               "operator": {
                 "type": "string",
                 "operation": "contains"
@@ -622,7 +580,7 @@
         "operation": "getAll",
         "blockId": {
           "__rl": true,
-          "value": "={{ $('Loop Over Items').item.json.id }}",
+          "value": "={{ $('Loop Over Recipes').item.json.id }}",
           "mode": "id"
         },
         "returnAll": true,
@@ -650,7 +608,7 @@
             {
               "id": "b900dada-8ed3-436a-be01-21a0d84ee963",
               "name": "pageId",
-              "value": "={{ $('Loop Over Items').item.json.id }}",
+              "value": "={{ $('Loop Over Recipes').item.json.id }}",
               "type": "string"
             },
             {
@@ -734,33 +692,57 @@
       ],
       "id": "de3d6964-118e-4805-910e-e3a4d7528a07",
       "name": "Stop on replacement error"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -464,
+        144
+      ],
+      "id": "7abc0b4a-a0d4-48ec-a672-423c65aeab8f",
+      "name": "Loop Over Recipes"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "value": "32a155e3-364a-8002-becf-f203615aa6c1",
+          "mode": "list",
+          "cachedResultName": "Rezepte",
+          "cachedResultUrl": "https://app.notion.com/p/32a155e3364a8002becff203615aa6c1"
+        },
+        "simple": false,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        -720,
+        144
+      ],
+      "id": "e1cc41fd-0ff9-442d-ad07-07679743e7fe",
+      "name": "Fetch recipes",
+      "credentials": {
+        "notionApi": {
+          "id": "wyrl9Poi0UELMINU",
+          "name": "Notion account"
+        }
+      }
     }
   ],
   "pinData": {},
   "connections": {
-    "Loop Over Items": {
-      "main": [
-        [
-          {
-            "node": "Get document for cleanup",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Updated since lastSync",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Read last sync timestamp": {
       "main": [
         [
           {
-            "node": "Fetch all recipes",
+            "node": "Fetch recipes",
             "type": "main",
             "index": 0
           }
@@ -778,7 +760,7 @@
         ],
         [
           {
-            "node": "Loop Over Items",
+            "node": "Loop Over Recipes",
             "type": "main",
             "index": 0
           }
@@ -823,17 +805,6 @@
         [
           {
             "node": "Read last sync timestamp",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Fetch all recipes": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
             "type": "main",
             "index": 0
           }
@@ -944,7 +915,7 @@
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "Loop Over Recipes",
             "type": "main",
             "index": 0
           }
@@ -1085,6 +1056,35 @@
           }
         ]
       ]
+    },
+    "Loop Over Recipes": {
+      "main": [
+        [
+          {
+            "node": "Get document for cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Updated since lastSync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch recipes": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Recipes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -1095,7 +1095,7 @@
     "timeSavedMode": "fixed",
     "callerPolicy": "workflowsFromSameOwner"
   },
-  "versionId": "e1f02148-4d53-447b-b23f-0ce670a280b4",
+  "versionId": "d2b85e84-8771-4dbb-bd72-bc7d4a3c0ca4",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "970f229751ebbab98d12cab3b179f3d634f3803781935e634aa873d7a6da0699"
