@@ -1,4 +1,4 @@
-# NotionToDocs — Sync your Notion recipes with Gemini
+# NotionToDocs — Use your Notion recipes with Gemini
 
 Automatically sync your Notion recipes into a Google Document — no manual copying, always up to date, and instantly usable with Gemini.  
 Access your recipes where you cook, on your smartphone, smartwatch, or tablet.  
