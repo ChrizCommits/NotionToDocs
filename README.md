@@ -51,7 +51,7 @@ Deleted recipes are removed from the document
 → Build new recipe content
 → Replace old with new content
 ```
-#### Workflow Overview
+#### Workflow Initial Sync
 <img src="screenshots/workflow-initial.png" width="800">
 
 ### Incremental Sync
@@ -77,7 +77,7 @@ CLEANUP DELETED RECIPES
 → Identify already deleted recipes
 → Delete recipes in the document
 ```
-#### Workflow Overview
+#### Workflow Incremental Sync
 <img src="screenshots/workflow-incremental.png" width="1200">
 
 ## 📊 Scaling and Performance
